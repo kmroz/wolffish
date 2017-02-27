@@ -25,7 +25,8 @@
     "paper-input": "PolymerElements/paper-input",
     "paper-item": "PolymerElements/paper-item",
     "paper-listbox": "PolymerElements/paper-listbox",
-    "paper-toolbar": "PolymerElements/paper-toolbar"
+    "paper-toolbar": "PolymerElements/paper-toolbar",
+    "iron-list": "PolymerElements/iron-list#^1.4.1"
   },
   "devDependencies": {},
   "private": true

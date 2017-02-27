@@ -1,0 +1,145 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+
+<link rel="import" href="../salt-api/salt-api.html">
+
+<link rel="import" href="../wf-styles/wf-styles.html">
+
+<body>
+<wf-example></wf-example>
+<dom-module id="wf-example">
+    <template>
+	<style include="wf-styles">
+	 :host {
+	     display: block;
+
+	     padding: 10px;
+	 }
+  paper-button {
+    font-family: 'Roboto', 'Noto', sans-serif;
+    font-weight: normal;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+  paper-button.indigo {
+    background-color: var(--paper-indigo-500);
+    color: white;
+    --paper-button-raised-keyboard-focus: {
+      background-color: var(--paper-pink-a200) !important;
+      color: white !important;
+    };
+  }
+  paper-button.indigo:hover {
+    background-color: var(--paper-indigo-400);
+  }
+  paper-button.disabled {
+    color: white;
+  }
+
+	</style>
+    <h1>Welcome to the Example.</h1>
+
+
+  <!--
+	<div class="wf-card">
+	    <paper-toolbar class="wf-card-toolbar">
+		<span class="title">Minion Stats</span>
+		<paper-icon-button icon="delete" on-tap="remove"></paper-icon-button>
+	    </paper-toolbar>
+
+            <paper-input label="Minion ID (blank to list all)" value="{{minion}}"></paper-input>
+            <paper-button raised on-click="queryMinions">Query</paper-button>
+
+            <pre>{{minionsOutput}}</pre>
+	</div>
+  -->
+    <paper-button raised class="indigo" on-click="ping">net.ping</paper-button>
+
+	<!-- Our salt-api auth element. -->
+	<salt-api
+	    id="example"
+	    node="{{saltApiNode}}"
+	    port="{{saltApiPort}}"
+	    cmd="{{cmd}}"
+      target="{{target}}"
+      func="{{func}}"
+	    userid=""
+	    password=""
+	    authtype="">
+	</salt-api>
+    </template>
+
+    <script>
+     Polymer({
+	 is: "wf-example",
+
+	 properties: {
+	     saltApiNode: {
+		 type: String
+	     },
+	     saltApiPort: {
+		 type: Number
+	     },
+	     cmd: {
+		 type: String
+	     },
+             minionsOutput: {
+                 type: Object
+             },
+             minion: {
+                 type: String,
+                 value: ""
+             }
+	 },
+
+	 listeners: {
+	     "salt-api-response": "handleMinions200",
+	     "salt-api-error": "handleMinionsErr"
+	 },
+
+	 ready: function() {
+	     /* Assuming sessionStorage.wfauth has needed information. */
+	     var wfauth = JSON.parse(sessionStorage.wfauth);
+	     this.saltApiNode = wfauth.node;
+	     this.saltApiPort = wfauth.port;
+	     this.cmd = "";
+	 },
+
+   ping: function() {
+       this.cmd = "";
+	     this.target = "*";
+	     this.func = "test.ping";
+       this.$.example.runPost();
+   },
+
+	 handleMinions200: function(e) {
+	     console.log(this.is + ":handleMinions200() caught 'salt-api-response'");
+	     console.log(e.detail.response);
+	        console.log(e.detail.status);
+             this.minionsOutput = JSON.stringify(e.detail.response.return[0], null, 2);
+             console.log(this.minionsOutput);
+	 },
+
+	 handleMinionsErr: function(e) {
+	     console.log(this.is + ":handleMinionsErr() caught 'salt-api-error'");
+	     /* console.log(e.detail.error);
+	        console.log(e.detail.request.status);
+	        console.log(e.detail.request.statusText);*/
+
+	 },
+
+	 remove: function() {
+	     console.log(this.is + ":remove(): firing 'remove-" + this.is + "' event.");
+	     this.fire("remove-" + this.is);
+	 }
+     });
+    </script>
+</dom-module>
+</body>

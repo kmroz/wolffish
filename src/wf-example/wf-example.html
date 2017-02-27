@@ -1,0 +1,32 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../wf-example/example.html">
+
+<link rel="import" href="../wf-styles/wf-styles.html">
+
+<dom-module id="wf-simple">
+    <template>
+	<style include="wf-styles">
+	 :host {
+	     display: block;
+
+	     padding: 10px 20px;
+	 }
+	</style>
+
+	<h1>Example</h1>
+
+  <wf-example></wf-example>
+
+    </template>
+
+    <script>
+     Polymer({
+	 is: 'wf-simple'
+
+
+     });
+    </script>
+</dom-module>
