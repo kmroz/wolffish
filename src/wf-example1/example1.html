@@ -1,0 +1,275 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-image/iron-image.html">
+<link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-styles/paper-styles.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/paper-styles/topography.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+
+<link rel="import" href="../salt-api/salt-api.html">
+
+<link rel="import" href="../wf-styles/wf-styles.html">
+
+
+<dom-module id="wf-example1">
+    <template>
+	<style include="wf-styles">
+	 :host {
+	     display: block;
+	     padding: 10px;
+       @apply(--paper-font-common-base);
+	 }
+  paper-button {
+    font-family: 'Roboto', 'Noto', sans-serif;
+    font-weight: normal;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+  paper-button.indigo {
+    background-color: var(--paper-indigo-500);
+    color: white;
+    --paper-button-raised-keyboard-focus: {
+      background-color: var(--paper-pink-a200) !important;
+      color: white !important;
+    };
+  }
+  paper-button.indigo:hover {
+    background-color: var(--paper-indigo-400);
+  }
+  paper-button.disabled {
+    color: white;
+  }
+      app-toolbar {
+        background-color: var(--google-green-700);
+        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.3);
+        font-weight: bold;
+        color: white;
+        font-size: 18px;
+        z-index: 1;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+      }
+      app-toolbar paper-icon-button {
+        --paper-icon-button-ink-color: white;
+      }
+      iron-list {
+        padding-top: 64px;
+        --iron-list-items-container: {
+          max-width: 800px;
+          margin: auto;
+          margin-top: 60px;
+          margin-bottom: 60px;
+          border-bottom: 1px solid #ddd;
+        };
+      }
+      .item {
+        @apply(--layout-horizontal);
+        padding: 20px;
+        background-color: white;
+        border: 1px solid #ddd;
+        cursor: pointer;
+        margin-bottom: 10px;
+      }
+      .avatar {
+        height: 40px;
+        width: 40px;
+        border-radius: 20px;
+        box-sizing: border-box;
+        background-color: #DDD;
+      }
+
+      .pad {
+        padding: 0 16px;
+        @apply(--layout-flex);
+        @apply(--layout-vertical);
+      }
+      .primary {
+        font-size: 16px;
+        font-weight: bold;
+      }
+      .shortText, .longText {
+        font-size: 14px;
+      }
+      .longText {
+        color: gray;
+        display: none;
+      }
+      .item:hover .shortText::after {
+        content: ' [+]';
+        color: gray;
+      }
+      .item.expanded:hover .shortText::after {
+        content: '';
+      }
+      .item.expanded .longText {
+        display: block;
+      }
+      .item.expanded:hover .longText::after {
+        content: ' [–]';
+      }
+      .spacer {
+        @apply(--layout-flex);
+      }
+      @media (max-width: 460px) {
+        paper-toolbar .bottom.title {
+          font-size: 14px;
+        }
+      }
+
+	</style>
+    <h1>Welcome to Example one.</h1>
+
+
+    <paper-button raised class="indigo" on-click="ping">net.ping</paper-button>
+
+    <!--
+    <app-toolbar>
+      <div main-title>Collapsible items</div>
+      <paper-icon-button icon="search" alt="Search"></paper-icon-button>
+      <paper-icon-button icon="more-vert" alt="More options"></paper-icon-button>
+    </app-toolbar>
+    -->
+
+    <iron-list id="list" items="[[items]]" as="item">
+      <template>
+        <div>
+              <div>[[item.name]]</div>
+        </div>
+      </template>
+    </iron-list>
+
+
+
+	<!-- Our salt-api auth element. -->
+	<salt-api
+	    id="example"
+	    node="{{saltApiNode}}"
+	    port="{{saltApiPort}}"
+	    cmd="{{cmd}}"
+      target="{{target}}"
+      func="{{func}}"
+	    userid=""
+	    password=""
+	    authtype="">
+	</salt-api>
+    </template>
+
+    <script>
+     Polymer({
+	 is: "wf-example1",
+
+	 properties: {
+	     saltApiNode: {
+		     type: String
+	     },
+	     saltApiPort: {
+		     type: Number
+	     },
+	     cmd: {
+		     type: String
+	     },
+       minionsOutput: {
+           type: Object
+       },
+       minion: {
+           type: String,
+           value: ""
+       },
+       items: {
+           type: Array
+       }
+	 },
+
+	 listeners: {
+	     "salt-api-response": "handleMinions200",
+	     "salt-api-error": "handleMinionsErr"
+	 },
+
+	 ready: function() {
+	     /* Assuming sessionStorage.wfauth has needed information. */
+	     var wfauth = JSON.parse(sessionStorage.wfauth);
+	     this.saltApiNode = wfauth.node;
+	     this.saltApiPort = wfauth.port;
+	     this.cmd = "";
+       this.items = [ {"name": "Bob"}, {"name": "Tim"}, {"name": "Mike"} ];
+       //this.items = []
+	 },
+
+   ping: function() {
+       this.cmd = "";
+	     this.target = "*";
+	     this.func = "test.ping";
+       this.$.example.runPost();
+   },
+
+	 handleMinions200: function(e) {
+	     console.log(this.is + ":handleMinions200() caught 'salt-api-response'");
+	     //console.log(e.detail.response);
+	     //console.log(e.detail.status);
+       this.minionsOutput = JSON.stringify(e.detail.response.return[0], null, 2);
+       data = e.detail.response.return[0];
+       this.items = [];
+       for (var i in data)
+         this.items.push({'name': i, 'success': data[i]})
+
+       //this.minionsOutput = JSON.parse(e.detail.response.return[0])
+       //console.log(this.minionsOutput);
+       document.querySelector('iron-list').fire('iron-resize');
+       console.log(JSON.stringify(this.items));
+	 },
+
+	 handleMinionsErr: function(e) {
+	     console.log(this.is + ":handleMinionsErr() caught 'salt-api-error'");
+	     /* console.log(e.detail.error);
+	        console.log(e.detail.request.status);
+	        console.log(e.detail.request.statusText);*/
+
+	 },
+
+	 remove: function() {
+	     console.log(this.is + ":remove(): firing 'remove-" + this.is + "' event.");
+	     this.fire("remove-" + this.is);
+	 },
+        attached: function() {
+          // Use the document element
+          this.$.list.scrollTarget = this.ownerDocument.documentElement;
+        },
+        iconForItem: function(item) {
+          return item ? (item.integer < 50 ? 'star-border' : 'star') : '';
+        },
+        getClassForItem: function(item, selected) {
+          return selected ? 'item expanded' : 'item';
+        }
+     });
+    HTMLImports.whenReady(function() {
+      Polymer({
+        is: 'x-collapse',
+        properties: {
+          items: {
+            type: Array
+          }
+        },
+        attached: function() {
+          // Use the document element
+          this.$.list.scrollTarget = this.ownerDocument.documentElement;
+        },
+        iconForItem: function(item) {
+          return item ? (item.integer < 50 ? 'star-border' : 'star') : '';
+        },
+        getClassForItem: function(item, selected) {
+          return selected ? 'item expanded' : 'item';
+        }
+      });
+    });
+    </script>
+</dom-module>
