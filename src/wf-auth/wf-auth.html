@@ -151,6 +151,13 @@
              this.setDefaultProperties();
              this.setWFUnauthenticated();
          }
+
+         document.addEventListener('salt-events-msg', function(e) {
+             console.log(this.is + ": caught " + e.type, e.detail);
+         }.bind(this));
+         document.addEventListener('salt-events-close', function(e) {
+             console.log(this.is + ": caught " + e.type, e.detail);
+         }.bind(this));
      },
 
      
@@ -326,6 +333,14 @@
           * being locked out of the application :D
           */
          this.$.authDialog.modal = false;
+
+         // Connect to salt events bus
+         var saltEvBus = document.querySelector("salt-events");
+         if (saltEvBus) {
+             saltEvBus.connect(this.saltApiNode, this.saltApiPort, false);
+         } else {
+             console.error(this.is + ": salt-events element not found!");
+         }
      },
 
      /* Clears wfAuth along with sessionStorage.wfauth.  Also disables logout button
@@ -353,6 +368,12 @@
          if (this.$.authDialog.opened)
              this.$.authDialog.close();
          this.$.authDialog.modal = true;
+
+         // Disconnect from salt events bus
+         var saltEvBus = document.querySelector("salt-events");
+         if (saltEvBus) {
+             saltEvBus.close();
+         }
 
          this.$.authDialog.open();
      }
