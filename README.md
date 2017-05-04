@@ -1,3 +1,5 @@
+# Please note that development has moved to: [DeepSea](https://github.com/SUSE/DeepSea) #
+
 # Wolffish - A SES Configuration App #
 
 Lives in the __DeepSea__.  Aims to make short work of tough to crack iSCSI
